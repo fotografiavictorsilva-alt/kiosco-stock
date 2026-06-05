@@ -250,10 +250,9 @@ export const db = {
 
   // Limpiar base de datos
   resetDb: () => {
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.SALES);
-    localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    writeStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES);
+   writeStorage(STORAGE_KEYS.PRODUCTS, []);
+writeStorage(STORAGE_KEYS.SALES, []);
+writeStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES);
   },
 
   // PRODUCTOS
