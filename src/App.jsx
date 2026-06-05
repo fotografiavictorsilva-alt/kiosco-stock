@@ -73,4 +73,66 @@ export default function App() {
       if (CLIENT_CONFIG.theme.secondary) root.style.setProperty('--secondary', CLIENT_CONFIG.theme.secondary);
       if (CLIENT_CONFIG.theme.secondaryHover) root.style.setProperty('--secondary-hover', CLIENT_CONFIG.theme.secondaryHover);
         }
-  }, []);
+  }, []);if (loadingAuth) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'white' }}>Cargando...</div>;
+  if (!session) return <Login />;
+
+  const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <Dashboard refreshTrigger={refreshTrigger} setActiveTab={setActiveTab} />;
+      case 'inventory': return <Inventory refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
+      case 'sales': return <SalesPOS refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
+      case 'history': return <SalesHistory refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
+      case 'settings': return <BackupSettings refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} setActiveTab={setActiveTab} />;
+      default: return <Dashboard refreshTrigger={refreshTrigger} setActiveTab={setActiveTab} />;
+    }
+  };
+
+  return (
+    <div className="app-container">
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">{CLIENT_CONFIG.kioskName ? CLIENT_CONFIG.kioskName.charAt(0).toUpperCase() : 'V'}</div>
+          <span className="sidebar-logo-text">{CLIENT_CONFIG.kioskName || 'VS Gestión'}</span>
+        </div>
+        <nav>
+          <ul className="sidebar-menu">
+            {[
+              { key: 'dashboard', icon: <Icons.Dashboard />, label: 'Panel de Control' },
+              { key: 'inventory', icon: <Icons.Inventory />, label: 'Inventario' },
+              { key: 'sales', icon: <Icons.SalesPOS />, label: 'Registrar Venta' },
+              { key: 'history', icon: <Icons.SalesHistory />, label: 'Historial y Reportes' },
+              { key: 'settings', icon: <Icons.BackupSettings />, label: 'Ajustes y Respaldos' },
+            ].map(({ key, icon, label }) => (
+              <li key={key} className="sidebar-item">
+                <button onClick={() => setActiveTab(key)} className={`sidebar-link ${activeTab === key ? 'active' : ''}`}>
+                  {icon}<span>{label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="sidebar-footer">
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '0.5rem' }}>VS Gestión v1.0.0</div>
+          <button className="btn btn-ghost" onClick={() => supabase.auth.signOut()} style={{ width: '100%', fontSize: '0.8rem' }}>
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
+      <main className="main-content">{renderContent()}</main>
+      {toast.visible && (
+        <div className={`toast ${toast.type}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{toast.message}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
