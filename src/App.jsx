@@ -72,5 +72,5 @@ export default function App() {
       if (CLIENT_CONFIG.theme.primaryHover) root.style.setProperty('--primary-hover', CLIENT_CONFIG.theme.primaryHover);
       if (CLIENT_CONFIG.theme.secondary) root.style.setProperty('--secondary', CLIENT_CONFIG.theme.secondary);
       if (CLIENT_CONFIG.theme.secondaryHover) root.style.setProperty('--secondary-hover', CLIENT_CONFIG.theme.secondaryHover);
-    }
-    return (
+        }
+  }, []);
