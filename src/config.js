@@ -2,7 +2,7 @@
 
 export const CLIENT_CONFIG = {
   // Nombre del negocio que se muestra en el menú lateral
-  kioskName: 'Kiosco Victor',
+  kioskName: 'VS Gestion',
 
   // Configuración de Moneda local (Ej: 'ARS' para Pesos Argentinos, 'USD' para Dólares, 'CLP' para Chile)
   currency: 'ARS',
