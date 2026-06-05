@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './utils/db';
+import { supabase } from './supabase';
+import Login from './components/Login';import { db } from './utils/db';
 import { CLIENT_CONFIG } from './config';
 import Dashboard from './components/Dashboard';
 import Inventory from './components/Inventory';
@@ -97,7 +98,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
+  const [session, setSession] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoadingAuth(false);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  if (loadingAuth) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'white' }}>Cargando...</div>;
+  if (!session) return <Login />;
   // Inicializar base de datos y configurar tema visual al montar la app
   useEffect(() => {
     db.init();
@@ -209,10 +224,17 @@ export default function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            Kiosco v1.0.0
-          </div>
-        </div>
+  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '0.5rem' }}>
+    VS Gestión v1.0.0
+  </div>
+  <button
+    className="btn btn-ghost"
+    onClick={() => supabase.auth.signOut()}
+    style={{ width: '100%', fontSize: '0.8rem' }}
+  >
+    Cerrar sesión
+  </button>
+</div>
       </aside>
 
       {/* Contenido Principal */}
