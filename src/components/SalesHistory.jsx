@@ -15,7 +15,7 @@ export default function SalesHistory({ refreshTrigger, triggerRefresh, showToast
     setSales(db.getSales());
   }, [refreshTrigger]);
 
-  const todayDate = new Date('2026-06-04'); // Fecha simulada actual
+  const todayDate = new Date(); // Fecha simulada actual
 
   // Filtrar ventas por fecha y método de pago
   const filteredSales = sales.filter(sale => {

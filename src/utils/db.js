@@ -146,7 +146,7 @@ const SAMPLE_PRODUCTS = [
 const generateSampleSales = () => {
   const sales = [];
   const paymentMethods = ['Efectivo', 'Tarjeta', 'Transferencia'];
-  const now = new Date('2026-06-04T17:00:00'); // Fecha actual en la simulación
+  const now = new Date(); // Fecha actual en la simulación
 
   // Simular ventas para los últimos 5 días
   for (let i = 4; i >= 0; i--) {
@@ -253,7 +253,7 @@ export const db = {
     localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     localStorage.removeItem(STORAGE_KEYS.SALES);
     localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    db.init();
+    writeStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES);
   },
 
   // PRODUCTOS
