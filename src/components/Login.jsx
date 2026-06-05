@@ -82,11 +82,27 @@ export default function Login() {
             {loading ? 'Cargando...' : isRegister ? 'Crear cuenta' : 'Ingresar'}
           </button>
           <button
-            className="btn btn-ghost"
-            onClick={() => setIsRegister(!isRegister)}
-            style={{ width: '100%' }}
-          >
-            {isRegister ? '¿Ya tenés cuenta? Iniciá sesión' : '¿Primera vez? Crear cuenta'}
+            <button
+    className="btn btn-ghost"
+    onClick={() => setIsRegister(!isRegister)}
+    style={{ width: '100%' }}
+  >
+    {isRegister ? '¿Ya tenés cuenta? Iniciá sesión' : '¿Primera vez? Crear cuenta'}
+  </button>
+  {!isRegister && (
+    <button
+      className="btn btn-ghost"
+      onClick={async () => {
+        if (!email) { setError('Ingresá tu email primero'); return; }
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) setError(error.message);
+        else setError('✅ Te enviamos un email para restablecer tu contraseña');
+      }}
+      style={{ width: '100%', fontSize: '0.85rem' }}
+    >
+      ¿Olvidaste tu contraseña?
+    </button>
+  )}
           </button>
         </div>
       </div>
