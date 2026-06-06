@@ -58,22 +58,40 @@ export default function App() {
   const [loadingAuth, setLoadingAuth] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initialize = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
+      await db.init();
+      if (CLIENT_CONFIG.theme) {
+        const root = document.documentElement;
+        if (CLIENT_CONFIG.theme.primary) root.style.setProperty('--primary', CLIENT_CONFIG.theme.primary);
+        if (CLIENT_CONFIG.theme.primaryHover) root.style.setProperty('--primary-hover', CLIENT_CONFIG.theme.primaryHover);
+        if (CLIENT_CONFIG.theme.secondary) root.style.setProperty('--secondary', CLIENT_CONFIG.theme.secondary);
+        if (CLIENT_CONFIG.theme.secondaryHover) root.style.setProperty('--secondary-hover', CLIENT_CONFIG.theme.secondaryHover);
+      }
       setLoadingAuth(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    };
+
+    initialize().catch(() => setLoadingAuth(false));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
+      if (session) {
+        await db.init();
+        setRefreshTrigger(prev => prev + 1);
+      }
     });
-    db.init();
-    if (CLIENT_CONFIG.theme) {
-      const root = document.documentElement;
-      if (CLIENT_CONFIG.theme.primary) root.style.setProperty('--primary', CLIENT_CONFIG.theme.primary);
-      if (CLIENT_CONFIG.theme.primaryHover) root.style.setProperty('--primary-hover', CLIENT_CONFIG.theme.primaryHover);
-      if (CLIENT_CONFIG.theme.secondary) root.style.setProperty('--secondary', CLIENT_CONFIG.theme.secondary);
-      if (CLIENT_CONFIG.theme.secondaryHover) root.style.setProperty('--secondary-hover', CLIENT_CONFIG.theme.secondaryHover);
-        }
-  }, []);if (loadingAuth) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'white' }}>Cargando...</div>;
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loadingAuth) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'white', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ width: '40px', height: '40px', border: '3px solid var(--primary)', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      <span>Cargando...</span>
+    </div>
+  );
+
   if (!session) return <Login />;
 
   const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
@@ -99,7 +117,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">{CLIENT_CONFIG.kioskName ? CLIENT_CONFIG.kioskName.charAt(0).toUpperCase() : 'V'}</div>
-          <span className="sidebar-logo-text">{CLIENT_CONFIG.kioskName || 'VS Gestión'}</span>
+          <span className="sidebar-logo-text">{CLIENT_CONFIG.kioskName || 'VS Gestion'}</span>
         </div>
         <nav>
           <ul className="sidebar-menu">
@@ -119,9 +137,9 @@ export default function App() {
           </ul>
         </nav>
         <div className="sidebar-footer">
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '0.5rem' }}>VS Gestión v1.0.0</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '0.5rem' }}>VS Gestion v2.0.0</div>
           <button className="btn btn-ghost" onClick={() => supabase.auth.signOut()} style={{ width: '100%', fontSize: '0.8rem' }}>
-            Cerrar sesión
+            Cerrar sesion
           </button>
         </div>
       </aside>
