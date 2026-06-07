@@ -4,7 +4,8 @@ import { CLIENT_CONFIG } from '../config';
 const STORAGE_KEYS = {
   PRODUCTS: 'kiosco_products',
   SALES: 'kiosco_sales',
-  CATEGORIES: 'kiosco_categories'
+  CATEGORIES: 'kiosco_categories',
+  BUSINESS_NAME: 'kiosco_business_name'
 };
 
 const DEFAULT_CATEGORIES = CLIENT_CONFIG.defaultCategories;
@@ -132,10 +133,11 @@ export const db = {
   init: async () => {
     const user = await getUser();
     if (user) {
-      const [{ data: products }, { data: sales }, { data: cats }] = await Promise.all([
+      const [{ data: products }, { data: sales }, { data: cats }, { data: settings }] = await Promise.all([
         supabase.from('products').select('*').eq('user_id', user.id),
         supabase.from('sales').select('*').eq('user_id', user.id).order('timestamp', { ascending: false }),
-        supabase.from('categories').select('name').eq('user_id', user.id)
+        supabase.from('categories').select('name').eq('user_id', user.id),
+        supabase.from('settings').select('business_name').eq('user_id', user.id).single()
       ]);
       if (products && products.length > 0) {
         writeStorage(STORAGE_KEYS.PRODUCTS, products.map(rowToProduct));
@@ -155,6 +157,9 @@ export const db = {
       } else {
         writeStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES);
         supabase.from('categories').insert(DEFAULT_CATEGORIES.map(name => ({ user_id: user.id, name }))).then();
+      }
+      if (settings && settings.business_name) {
+        writeStorage(STORAGE_KEYS.BUSINESS_NAME, settings.business_name);
       }
     } else {
       if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) writeStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES);
@@ -196,6 +201,19 @@ export const db = {
     });
   },
 
+  // SETTINGS
+  getBusinessName: () => {
+    return readStorage(STORAGE_KEYS.BUSINESS_NAME, '') || CLIENT_CONFIG.kioskName || 'Mi Negocio';
+  },
+
+  saveBusinessName: async (name) => {
+    writeStorage(STORAGE_KEYS.BUSINESS_NAME, name);
+    const user = await getUser();
+    if (!user) return;
+    await supabase.from('settings').upsert({ user_id: user.id, business_name: name }, { onConflict: 'user_id' });
+  },
+
+  // PRODUCTS
   getProducts: () => readStorage(STORAGE_KEYS.PRODUCTS, []),
 
   saveProducts: (products) => {
@@ -248,6 +266,7 @@ export const db = {
     throw new Error('Producto no encontrado.');
   },
 
+  // SALES
   getSales: () => {
     const sales = readStorage(STORAGE_KEYS.SALES, []);
     return sales.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -301,6 +320,7 @@ export const db = {
     });
   },
 
+  // CATEGORIES
   getCategories: () => readStorage(STORAGE_KEYS.CATEGORIES, DEFAULT_CATEGORIES),
 
   saveCategories: (categories) => {

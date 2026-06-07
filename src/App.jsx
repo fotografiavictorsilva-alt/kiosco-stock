@@ -56,12 +56,14 @@ export default function App() {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [businessName, setBusinessName] = useState('');
 
   useEffect(() => {
     const initialize = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       await db.init();
+      setBusinessName(db.getBusinessName());
       if (CLIENT_CONFIG.theme) {
         const root = document.documentElement;
         if (CLIENT_CONFIG.theme.primary) root.style.setProperty('--primary', CLIENT_CONFIG.theme.primary);
@@ -78,6 +80,7 @@ export default function App() {
       setSession(session);
       if (session) {
         await db.init();
+        setBusinessName(db.getBusinessName());
         setRefreshTrigger(prev => prev + 1);
       }
     });
@@ -107,17 +110,19 @@ export default function App() {
       case 'inventory': return <Inventory refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
       case 'sales': return <SalesPOS refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
       case 'history': return <SalesHistory refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} />;
-      case 'settings': return <BackupSettings refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} setActiveTab={setActiveTab} />;
+      case 'settings': return <BackupSettings refreshTrigger={refreshTrigger} triggerRefresh={triggerRefresh} showToast={showToast} setActiveTab={setActiveTab} onBusinessNameChange={setBusinessName} />;
       default: return <Dashboard refreshTrigger={refreshTrigger} setActiveTab={setActiveTab} />;
     }
   };
+
+  const displayName = businessName || CLIENT_CONFIG.kioskName || 'Mi Negocio';
 
   return (
     <div className="app-container">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">{CLIENT_CONFIG.kioskName ? CLIENT_CONFIG.kioskName.charAt(0).toUpperCase() : 'V'}</div>
-          <span className="sidebar-logo-text">{CLIENT_CONFIG.kioskName || 'VS Gestion'}</span>
+          <div className="sidebar-logo-icon">{displayName.charAt(0).toUpperCase()}</div>
+          <span className="sidebar-logo-text">{displayName}</span>
         </div>
         <nav>
           <ul className="sidebar-menu">
